@@ -381,7 +381,7 @@
         // Initialize Supabase with your credentials
         const supabaseUrl = 'https://cvkvjeemducoxyvlwvch.supabase.co';
         const supabaseKey = 'sb_publishable_qjTSfZjH4r0juuIvvp9dEQ_Mhv-s6pW';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
         
         // Location and sub-location handling
         const locationSelect = document.getElementById('location');
@@ -403,7 +403,7 @@
         
         // Hide suggestions when clicking elsewhere
         document.addEventListener('click', function(e) {
-            if (e.target !== subLocationInput) {
+            if (e.target a!== subLocationInput) {
                 suggestionBox.style.display = 'none';
             }
         });
@@ -467,7 +467,7 @@
             
             try {
                 // Insert data into VMS Database table
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('VMS Database')
                     .insert([formData]);
                 
@@ -496,7 +496,7 @@
             if (!email || !email.includes('@')) return;
             
             const domain = email.split('@')[1];
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('Organizations')
                 .select('id, Organization_Name')
                 .ilike('Primary_Email_Domain', `%${domain}%`)

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Management System</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #f3f4f6;
+            --error: #dc2626;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-section {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 1.2em;
+            color: var(--primary);
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .required label:after {
+            content: " *";
+            color: var(--error);
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        #successMessage {
+            display: none;
+            background-color: #ecfdf5;
+            color: #065f46;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+        }
+        .suggestion-box {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            width: calc(100% - 22px);
+            display: none;
+        }
+        .suggestion-item {
+            padding: 8px 10px;
+            cursor: pointer;
+        }
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
+        .suggestion-container {
+            position: relative;
+        }
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Visitor Registration Form</h1>
+    
+    <form id="visitorForm">
+        <!-- Basic Information Section -->
+        <div class="form-section">
+            <h2 class="section-title">Personal Information</h2>
+            <div class="form-grid">
+                <div class="form-group required">
+                    <label for="visitor_name">Full Name</label>
+                    <input type="text" id="visitor_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="job_title">Job Title</label>
+                    <input type="text" id="job_title">
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group required">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="mobile_number">Mobile Number</label>
+                    <input type="tel" id="mobile_number">
+                </div>
+            </div>
+        </div>
+
+        <!-- Organization Information -->
+        <div class="form-section">
+            <h2 class="section-title">Organization Details</h2>
+            <div class="form-grid">
+                <div class="form-group required">
+                    <label for="organization">Organization Name</label>
+                    <input type="text" id="organization" required>
+                </div>
+                <div class="form-group">
+                    <label for="engagement_classification">Engagement Classification</label>
+                    <select id="engagement_classification">
+                        <option value="">Select...</option>
+                        <option value="Strategic">Strategic</option>
+                        <option value="Managed">Managed</option>
+                        <option value="Transactional">Transactional</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visit Details -->
+        <div class="form-section">
+            <h2 class="section-title">Visit Information</h2>
+            <div class="form-grid">
+                <div class="form-group required">
+                    <label for="poc">Point of Contact</label>
+                    <input type="text" id="poc" required>
+                </div>
+                <div class="form-group required">
+                    <label for="purpose">Purpose of Visit</label>
+                    <select id="purpose" required>
+                        <option value="">Select...</option>
+                        <option value="Meeting">Meeting</option>
+                        <option value="Delivery">Delivery</option>
+                        <option value="Interview">Interview</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="location">Location (City)</label>
+                    <select id="location">
+                        <option value="">Select City...</option>
+                        <option value="Bengaluru">Bengaluru</option>
+                        <option value="Bhubaneswar">Bhubaneswar</option>
+                        <option value="Chandigarh">Chandigarh</option>
+                        <option value="Chennai">Chennai</option>
+                        <option value="Coimbatore">Coimbatore</option>
+                        <option value="Gurgaon">Gurgaon</option>
+                        <option value="Guwahati">Guwahati</option>
+                        <option value="Hubballi">Hubballi</option>
+                        <option value="Hyderabad">Hyderabad</option>
+                        <option value="Indore">Indore</option>
+                        <option value="Jaipur">Jaipur</option>
+                        <option value="Kolkata">Kolkata</option>
+                        <option value="Mangaluru">Mangaluru</option>
+                        <option value="Mohali">Mohali</option>
+                        <option value="Mumbai">Mumbai</option>
+                        <option value="Mysuru">Mysuru</option>
+                        <option value="Nagpur">Nagpur</option>
+                        <option value="Noida">Noida</option>
+                        <option value="Pune">Pune</option>
+                        <option value="Thiruvananthapuram">Thiruvananthapuram</option>
+                        <option value="Vishakapatnam">Vishakapatnam</option>
+                    </select>
+                </div>
+                <div class="form-group suggestion-container">
+                    <label for="sub_location">Sub-Location (Office)</label>
+                    <input type="text" id="sub_location" placeholder="Start typing or select from suggestions">
+                    <div id="suggestionBox" class="suggestion-box"></div>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="building">Building</label>
+                    <input type="text" id="building">
+                </div>
+                <div class="form-group">
+                    <label for="gate">Gate Number</label>
+                    <input type="number" id="gate" min="1">
+                </div>
+            </div>
+        </div>
+
+        <!-- Visit Dates -->
+        <div class="form-section">
+            <h2 class="section-title">Visit Dates</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="from_date">From Date</label>
+                    <input type="date" id="from_date">
+                </div>
+                <div class="form-group">
+                    <label for="to_date">To Date</label>
+                    <input type="date" id="to_date">
+                </div>
+            </div>
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="night_work">
+                <label for="night_work">Night Work Required</label>
+            </div>
+        </div>
+
+        <!-- Assets -->
+        <div class="form-section">
+            <h2 class="section-title">Assets Information</h2>
+            <div class="form-group">
+                <label for="assets">Assets Bringing In</label>
+                <textarea id="assets" placeholder="List any equipment, devices, or materials you're bringing (e.g., laptop, tools, etc.)"></textarea>
+            </div>
+        </div>
+
+        <!-- Project Information (Optional) -->
+        <div class="form-section">
+            <h2 class="section-title">Project Information (Optional)</h2>
+            <div class="form-group">
+                <label for="project_name">Project Name</label>
+                <input type="text" id="project_name">
+            </div>
+        </div>
+
+        <button type="submit">Submit Visitor Information</button>
+    </form>
+
+    <div id="successMessage">
+        <h2>Thank You!</h2>
+        <p>Your visitor information has been successfully submitted.</p>
+    </div>
+
+    <script>
+        // Office locations data structure
+        const officeLocations = {
+            "Bengaluru": [
+                "Plot No. 44/97 A, 3rd cross, Electronic City, Hosur Road",
+                "Offshore Development Center, Plot No. 26A, Electronic City, Hosur Road",
+                "SQUARE (IIPM), STP UNIT OFFSHORE Development Center, SY No. 41(P), 40(P), Konappana Agrahara Village",
+                "EQUINOX OFFSHORE Development Center, Plot No. 47, 1st Main Road, Electronic City, Phase1",
+                "ORION (M&C Building) STP OFFSHORE Development Center, Sy No. Part- 157, Plot No. 53, Electronic City, Hosur Road",
+                "Manipal Center, #403, 4th Floor, North Block, Front Wing, Dickenson Road",
+                "Focus Towers, Plot No. 22, 1st Main, 1st Phase, Electronic City",
+                "Centralized Processing Center 'Prestige Alpha', No.48/1,48/2, Beratena Agrahara, Begur Hobli, Hosur Road",
+                "CRESCENT, SEZ UNIT I, OFFSHORE Development Center, Sy No.64, 65, 157, 158 & 161, Electronic City, Doddathogur Village",
+                "JP IT PARK OFFSHORE Development Center, Konappan Agrahara Village, Begur Hobli, Electronic City",
+                "No. 1, Brigade Tech Gardens, Kundanahalli, Brookefields Green Avenue, ITPL Main Rd, Phase 2, Brookefield"
+            ],
+            "Bhubaneswar": [
+                "STPI, Plot No-E/4 Info City",
+                "Plot No – PB 1, NE 1, NP 1, Info Valley, IDCO IT / ITES SEZ, Vill. –Gaudakashipur & Arisal"
+            ],
+            "Chandigarh": [
+                "Plot No. 1, Rajiv Gandhi Technology Park, Kishangarh"
+            ],
+            "Chennai": [
+                "138, Old Mahabalipuram Road, Sholinganallur",
+                "Plot No.TP1/1, Central Avenue, Techno Park (SEZ), Mahindra World City",
+                "Pacifica Tech Park Survey No: 76 No-23, Rajiv Gandhi Salai (OMR), Navalur"
+            ],
+            "Coimbatore": [
+                "Coimbatore STP Unit, SVB Tech park, SF 60/2B, Kurumbapalayam Road, Kalapatti"
+            ],
+            "Gurgaon": [
+                "Uniworld Tower B, Village Tikri, Sector 48"
+            ],
+            "Guwahati": [
+                "Nexia Tower, Ground, 1st & 2nd Floor, G.S Road, Khanapara"
+            ],
+            "Hubballi": [
+                "Gokul Hobli, Near Hubballi Airport, Dharwad District"
+            ],
+            "Hyderabad": [
+                "Survey No. 210, Manikonda Village, Lingampally, Rangareddy District",
+                "Survey No. 41 (Pt),50 (pt), Pocharam Village, Singapore Township PO",
+                "Unit -6, Mantri Cosmos A & B Tower-9th Floor, Survey No: 130, 131, ISB Road"
+            ],
+            "Indore": [
+                "Scheme No 151 & 169 B, Village Bada Bangarda and Tigariya Badshah, Super Corridor"
+            ],
+            "Jaipur": [
+                "Plot No. IT-A-001-A-1, Mahindra World City SEZ, Village Kalwara"
+            ],
+            "Kolkata": [
+                "Plot No. IIIG/2, AA-IIIG, St No.3333, New Town- Action area- III",
+                "14th Floor, Mani casadona, West wing, Action Area- II, New Town"
+            ],
+            "Mangaluru": [
+                "IT & IT SEZ, Kamblapadav, Kurnad Post, Pajeeru Village"
+            ],
+            "Mohali": [
+                "Plot No.I-3, Sector 83-A, IT City, SAS Nagar",
+                "Level 9 & 10, Landmark Plaza Building (F3 Tower), Plot No. A-40A, Phase-VIII B"
+            ],
+            "Mumbai": [
+                "85, 'C', Mittal Towers, 8th Floor, Nariman Point",
+                "11Th Floor, South Tower, Godrej One Pirojshanagar, Easter Express Highway Vikhroli - East",
+                "401, 4th Floor, Building No.1, Plot No.IT-5, Airoli Knowledge Park"
+            ],
+            "Mysuru": [
+                "No. 350, Hebbal Electronics City, Hootagalli"
+            ],
+            "Nagpur": [
+                "SEZ Co-Developer, Plot No. 07, Sector-17, Special Economic Zone, MIHAN"
+            ],
+            "Noida": [
+                "Floor 9 to12, Tower B, Ace Capitol, Plot No 37A, Sector 132",
+                "Floor 15 to 17, Tower B, Alphathum Bhutani, Sector 90"
+            ],
+            "Pune": [
+                "Plot No.1, Rajiv Gandhi Infotech Park, Hinjawadi, Phase-I",
+                "Plot No.24/2, Rajiv Gandhi Infotech Park, Hinjawadi",
+                "Plot No.24/3, Village-Maan, Rajiv Gandhi Infotech Park, Phase-II",
+                "Ascendas SEZ Unit, Building - Juniper, International Tech Park",
+                "Unit No. 702, Level 7, Wing B, Tower XII, Cybercity, Magarpatta City"
+            ],
+            "Thiruvananthapuram": [
+                "Plot No. 1, Technopark Campus II, Attipra Village"
+            ],
+            "Vishakapatnam": [
+                "Ground, 1st & 2nd Floors, Signitive Towers Pvt. Ltd, Plot B, Sy No 408/1 IT Park"
+            ]
+        };
+
+        // Initialize Supabase with your credentials
+        const supabaseUrl = 'https://cvkvjeemducoxyvlwvch.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2a3ZqZWVtZHVjb3h5dmx3dmNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4Mzk0ODAsImV4cCI6MjA2ODQxNTQ4MH0.rTHS5LHxJbbqbWo5lKQvOrRB0k9qZnuCOWxNG4G_Nrs';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // Location and sub-location handling
+        const locationSelect = document.getElementById('location');
+        const subLocationInput = document.getElementById('sub_location');
+        const suggestionBox = document.getElementById('suggestionBox');
+        let currentCity = '';
+        
+        // When city changes, update suggestions
+        locationSelect.addEventListener('change', function() {
+            currentCity = this.value;
+            subLocationInput.value = '';
+            updateSuggestions('');
+        });
+        
+        // When typing in sub-location, show suggestions
+        subLocationInput.addEventListener('input', function() {
+            updateSuggestions(this.value);
+        });
+        
+        // Hide suggestions when clicking elsewhere
+        document.addEventListener('click', function(e) {
+            if (e.target !== subLocationInput) {
+                suggestionBox.style.display = 'none';
+            }
+        });
+        
+        // Function to update suggestions
+        function updateSuggestions(input) {
+            suggestionBox.innerHTML = '';
+            
+            if (!currentCity || !officeLocations[currentCity]) {
+                suggestionBox.style.display = 'none';
+                return;
+            }
+            
+            const suggestions = officeLocations[currentCity].filter(office => 
+                office.toLowerCase().includes(input.toLowerCase())
+            );
+            
+            if (suggestions.length === 0) {
+                suggestionBox.style.display = 'none';
+                return;
+            }
+            
+            suggestions.forEach(office => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.textContent = office;
+                div.addEventListener('click', function() {
+                    subLocationInput.value = office;
+                    suggestionBox.style.display = 'none';
+                });
+                suggestionBox.appendChild(div);
+            });
+            
+            suggestionBox.style.display = 'block';
+        }
+        
+        // Form submission handler
+        document.getElementById('visitorForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Prepare form data
+            const formData = {
+                visitor_name: document.getElementById('visitor_name').value,
+                mobile_number: document.getElementById('mobile_number').value,
+                email_id: document.getElementById('email').value,
+                organization: document.getElementById('organization').value,
+                engagement_classification: document.getElementById('engagement_classification').value,
+                job_title: document.getElementById('job_title').value,
+                poc: document.getElementById('poc').value,
+                purpose: document.getElementById('purpose').value,
+                location: document.getElementById('location').value,
+                sub_location: document.getElementById('sub_location').value,
+                building: document.getElementById('building').value,
+                gate: document.getElementById('gate').value,
+                from_date: document.getElementById('from_date').value,
+                to_date: document.getElementById('to_date').value,
+                assets: document.getElementById('assets').value,
+                night_work: document.getElementById('night_work').checked,
+                created_at: new Date().toISOString()
+            };
+            
+            try {
+                // Insert data into VMS Database table
+                const { data, error } = await supabase
+                    .from('VMS Database')
+                    .insert([formData]);
+                
+                if (error) throw error;
+                
+                // Show success message
+                document.getElementById('visitorForm').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+                
+                // Optional: Reset form after 5 seconds
+                setTimeout(() => {
+                    document.getElementById('visitorForm').reset();
+                    document.getElementById('visitorForm').style.display = 'block';
+                    document.getElementById('successMessage').style.display = 'none';
+                }, 5000);
+                
+            } catch (error) {
+                alert('Error submitting form: ' + error.message);
+                console.error('Error details:', error);
+            }
+        });
+
+        // Optional: Auto-fill organization based on email domain
+        document.getElementById('email').addEventListener('blur', async function() {
+            const email = this.value;
+            if (!email || !email.includes('@')) return;
+            
+            const domain = email.split('@')[1];
+            const { data, error } = await supabase
+                .from('Organizations')
+                .select('id, Organization_Name')
+                .ilike('Primary_Email_Domain', `%${domain}%`)
+                .maybeSingle();
+            
+            if (data) {
+                document.getElementById('organization').value = data.Organization_Name;
+            }
+        });
+    </script>
+</body>
+</html>

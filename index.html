@@ -403,7 +403,7 @@
         
         // Hide suggestions when clicking elsewhere
         document.addEventListener('click', function(e) {
-            if (e.target a!== subLocationInput) {
+            if (e.target !== subLocationInput) {
                 suggestionBox.style.display = 'none';
             }
         });

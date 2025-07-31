@@ -465,9 +465,9 @@
             };
             
             try {
-                // Insert data into VMS Database table
+                // Insert data into pending_visits table
                 const { data, error } = await supabaseClient
-                    .from('VMS Database')
+                    .from('pending_visits')
                     .insert([formData]);
                 
                 if (error) throw error;
